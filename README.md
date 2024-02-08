@@ -9,8 +9,11 @@
 2. In Android Studio, select *File* | *Open...*
 3. Select the project
 
+## Plugins
+* [battery_info][folder_battery_info]
 
 [badge_flutter]: https://img.shields.io/badge/flutter-v3.16.3-blue?logo=flutter
 [badge_melos]: https://img.shields.io/badge/maintained%20with-melos-f700ff.svg
 [link_flutter_release]: https://docs.flutter.dev/development/tools/sdk/releases
 [link_melos]: https://github.com/invertase/melos
+[folder_battery_info]: projects/battery_info/README.md
