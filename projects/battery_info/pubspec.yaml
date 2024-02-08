@@ -1,0 +1,25 @@
+name: battery_info
+description: "A Flutter plugin to manage battery info."
+
+version: 0.0.1
+
+environment:
+  sdk: '>=3.2.3 <4.0.0'
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.1.8
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.mancel.yann.battery_info
+        pluginClass: BatteryInfoPlugin

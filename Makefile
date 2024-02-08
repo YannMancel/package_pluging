@@ -1,4 +1,4 @@
-FLUTTER_VERSION?=3.16.3
+FLUTTER_VERSION?=3.19.5
 FLUTTER?= fvm flutter
 FOLDER?= projects
 PROJECT?= project
@@ -29,12 +29,13 @@ install: ## Install environment
 ## -------------------------------------------------------------------------------------------------
 ##
 
-.PHONY: generate
-generate: ## Generate a project
-	# make generate PROJECT=bill_runner DESCRIPTION="A Flutter game with Flame."
-	@$(call print_color_message,"Generate a project")
+.PHONY: generate-plugin
+generate-plugin: ## Generate a plugin
+	# make generate-plugin PROJECT=battery_info DESCRIPTION="A Flutter plugin to manage battery info."
+	@$(call print_color_message,"Generate a plugin")
 	$(FLUTTER) create ./$(FOLDER)/$(PROJECT)/ \
 		--description="$(DESCRIPTION)" \
+		--template=plugin \
       	--platforms=android \
       	--org="com.mancel.yann" \
 	  	--project-name=$(PROJECT)
