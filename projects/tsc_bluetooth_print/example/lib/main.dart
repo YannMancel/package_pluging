@@ -17,84 +17,88 @@ void main() => runApp(const MyApp());
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  set _printMessage(String message) {
-    if (kDebugMode) print('[Example] $message');
+  Future<void> _onGuarded({required AsyncCallback run}) async {
+    try {
+      await run();
+    } on PrinterException catch (e) {
+      if (kDebugMode) print('[Example] ${e.message}');
+    }
   }
 
   Future<void> _connect() async {
-    try {
-      final statuses = await const <Permission>[
-        Permission.bluetooth,
-        Permission.bluetoothScan,
-        Permission.bluetoothConnect,
-        Permission.location,
-      ].request();
+    _onGuarded(
+      run: () async {
+        final statuses = await const <Permission>[
+          Permission.bluetooth,
+          Permission.bluetoothScan,
+          Permission.bluetoothConnect,
+          Permission.location,
+        ].request();
 
-      if (statuses.values.every((status) => status.isGranted)) {
-        const kPrinter = Printer(address: kPrinterAddress);
-        await plugin.connect(kPrinter);
-      }
-    } on PrinterException catch (e) {
-      _printMessage = e.message;
-    }
+        if (statuses.values.every((status) => status.isGranted)) {
+          const kPrinter = Printer(address: kPrinterAddress);
+          await plugin.connect(kPrinter);
+        }
+      },
+    );
   }
 
   Future<void> _print() async {
-    try {
-      final document = pw.Document()
-        ..addPage(
-          pw.Page(
-            pageFormat: const PdfPageFormat(
-              55 * PdfPageFormat.mm,
-              29 * PdfPageFormat.mm,
-            ),
-            build: (_) => pw.DecoratedBox(
-              decoration: pw.BoxDecoration(
-                color: PdfColor.fromInt(Colors.white.value),
+    _onGuarded(
+      run: () async {
+        final document = pw.Document()
+          ..addPage(
+            pw.Page(
+              pageFormat: const PdfPageFormat(
+                55 * PdfPageFormat.mm,
+                29 * PdfPageFormat.mm,
               ),
-              child: pw.Center(
-                child: pw.Text('Hello World'),
+              build: (_) => pw.DecoratedBox(
+                decoration: pw.BoxDecoration(
+                  color: PdfColor.fromInt(Colors.white.value),
+                ),
+                child: pw.Center(
+                  child: pw.Text('Hello World'),
+                ),
               ),
             ),
-          ),
+          );
+        final documentBytes = await document.save();
+
+        final raster = await Printing.raster(
+          documentBytes,
+          pages: const <int>[0],
+          dpi: PdfPageFormat.inch.toDpi,
+        ).first;
+        final pngBytes = await raster.toPng();
+
+        final configuration = PrintingConfiguration(
+          count: 1,
+          size: const Point<int>(55, 29),
+          gap: 3,
+          printableItems: <PrintableItem>[
+            PrintableImage(
+              origin: const Point<int>(0, 0),
+              width: 55,
+              bytes: pngBytes,
+            ),
+            const PrintableText(
+              origin: Point<int>(5, 5),
+              label: 'Fake label',
+            ),
+          ],
         );
-      final documentBytes = await document.save();
-
-      final raster = await Printing.raster(
-        documentBytes,
-        pages: const <int>[0],
-        dpi: PdfPageFormat.inch.toDpi,
-      ).first;
-      final pngBytes = await raster.toPng();
-
-      final configuration = PrintingConfiguration(
-        count: 1,
-        size: const Point<int>(55, 29),
-        gap: 3,
-        printableItems: <PrintableItem>[
-          PrintableImage(
-            origin: const Point<int>(0, 0),
-            width: 55,
-            bytes: pngBytes,
-          ),
-          const PrintableText(
-            origin: Point<int>(5, 5),
-            label: 'Fake label',
-          ),
-        ],
-      );
-      await plugin.print(configuration);
-    } on PrinterException catch (e) {
-      _printMessage = e.message;
-    }
+        await plugin.print(configuration);
+      },
+    );
   }
 
   Future<void> _disconnect() async {
-    try {
-      await plugin.disconnect();
-    } on PrinterException catch (e) {
-      _printMessage = e.message;
-    }
+    _onGuarded(
+      run: () async {
+        await plugin.disconnect();
+      },
+    );
   }
 
   @override
@@ -119,11 +123,10 @@ class MyApp extends StatelessWidget {
                       ? _PrinterStateName(printerState: snapshot.data!)
                       : const Text('Data in waiting...');
 
-              return Column(
+              return Stack(
+                alignment: Alignment.bottomCenter,
                 children: <Widget>[
-                  Expanded(
-                    child: Center(child: label),
-                  ),
+                  Center(child: label),
                   _Actions(
                     snapshot,
                     onConnect: _connect,
@@ -210,9 +213,13 @@ class _Actions extends StatelessWidget {
               }
             : <Widget>[connectButton];
 
-    return ButtonBar(
-      alignment: MainAxisAlignment.center,
-      children: buttons,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: OverflowBar(
+        spacing: 16.0,
+        alignment: MainAxisAlignment.center,
+        children: buttons,
+      ),
     );
   }
 }

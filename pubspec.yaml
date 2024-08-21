@@ -1,11 +1,11 @@
 name: package_pluging
-description: "A project which manage several Flutter packages and plugins."
+description: "A project which manages several Flutter packages and plugins."
 publish_to: 'none'
 
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.2.3 <4.0.0'
+  sdk: '>=3.5.0 <4.0.0'
 
 dev_dependencies:
   melos: ^6.1.0
